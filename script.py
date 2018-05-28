@@ -251,7 +251,6 @@ encoder = Encoder().cuda()
 #encoder = ConvEncoder().cuda()
 decoder = Decoder().cuda()
 #decoder = ConvDecoder().cuda()
-#optimizer = torch.optim.SGD(list(encoder.parameters())+list(decoder.parameters()), lr = 0.001, momentum=0.9)
 optimizer = torch.optim.Adam(list(encoder.parameters())+list(decoder.parameters()), lr=1e-3)
 
 def save_image(data, file_name):

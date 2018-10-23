@@ -7,7 +7,7 @@ from PIL import Image
 from tqdm import tqdm
 
 LATENT_SIZE = 2048
-LATENT_SIZE = 2
+LATENT_SIZE = 20
 
 class ConvEncoder(torch.nn.Module):
     def __init__(self):
@@ -227,7 +227,7 @@ def loss(in_img, out_img, mean, logvar):
     loss2 = torch.mean(loss2)
 
     # Total loss
-    return loss1+loss2
+    return loss1+loss2*0.1
 
 def load_training_data():
     with open('atari.pkl', 'rb') as f:
@@ -323,7 +323,7 @@ def save_examples(file_name):
     train_examples = np.concatenate(output[10:],axis=1)
     all_examples = np.concatenate((test_examples,train_examples),axis=0)
     save_image(all_examples, file_name)
-    print(np.mean(np.array(latents),axis=0))
+    print(np.mean(np.array(latents),axis=0), np.std(np.array(latents),axis=0))
 
 def save_truth(file_name):
     latents = []
@@ -362,7 +362,7 @@ while True:
 
         sample = np.random.normal(0,1,(batch_size,LATENT_SIZE))
         sample = torch.tensor(sample, requires_grad=False).float().cuda()
-        #sample = torch.zeros([batch_size,LATENT_SIZE], requires_grad=False).float().cuda()
+        sample = torch.zeros([batch_size,LATENT_SIZE], requires_grad=False).float().cuda()
 
         batched_data = torch.empty([batch_size,3,210,160], requires_grad=False).cuda()
         batched_latent = torch.zeros([batch_size,LATENT_SIZE], requires_grad=False).cuda()
@@ -376,8 +376,8 @@ while True:
         l = loss(batched_data, o, m, lv)
         training_loss += l.item()
 
-        o = decoder(batched_latent)
-        l += loss(batched_data, o, m, lv)
+        #o = decoder(batched_latent)
+        #l += loss(batched_data, o, m, lv)
 
         l.backward()
         optimizer.step()

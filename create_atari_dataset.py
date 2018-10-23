@@ -24,7 +24,7 @@ try:
 except KeyboardInterrupt:
     pass
 
-with open('atari1.pkl', 'wb') as f:
+with open('atari-%s.pkl'%environment_name, 'wb') as f:
     print("Saving file...")
     dill.dump(data,f)
     print("Done")

@@ -236,7 +236,7 @@ def load_testing_data():
     with open('atari2.pkl', 'rb') as f:
         return dill.load(f)
 
-data = load_training_data()[:3]*int(1000/3)
+data = load_training_data()[:5]*int(1000/5)
 test_data = load_testing_data()
 
 #encoder = Encoder().cuda()

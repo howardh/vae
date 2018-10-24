@@ -236,7 +236,7 @@ def load_testing_data():
     with open('atari2.pkl', 'rb') as f:
         return dill.load(f)
 
-data = load_training_data()[:5]*int(1000/5)
+data = load_training_data()[:10]*int(1000/10)
 test_data = load_testing_data()
 
 #encoder = Encoder().cuda()
@@ -311,17 +311,11 @@ def save_examples(file_name):
             inputs.append(img)
             samples.append(sample)
             latents.append(o.data.cpu().numpy())
-            if i == 0:
-                o[0,0] = 0
-                o[0,1] = 1
-            if i == 1:
-                o[0,0] = 1
-                o[0,1] = 0
             o = decoder(o)
             output.append(torch_to_np(o.data)[0])
     test_examples = np.concatenate(output[:10],axis=1)
     train_examples = np.concatenate(output[10:],axis=1)
-    all_examples = np.concatenate((test_examples,train_examples),axis=0)
+    all_examples = np.concatenate((np.concatenate(test_data[:10],axis=1),test_examples,train_examples,np.concatenate(data[:10],axis=1)),axis=0)
     save_image(all_examples, file_name)
     print(np.mean(np.array(latents),axis=0), np.std(np.array(latents),axis=0))
 

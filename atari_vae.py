@@ -236,7 +236,7 @@ def load_testing_data():
     with open('atari2.pkl', 'rb') as f:
         return dill.load(f)
 
-data = load_training_data()[:10]*int(1000/10)
+data = load_training_data()
 test_data = load_testing_data()
 
 #encoder = Encoder().cuda()
@@ -337,7 +337,7 @@ save_truth('atari-truth.png')
 save_examples('atari-ex.png')
 
 iters = 0
-batch_size = 1
+batch_size = 10
 while True:
     file_name = "output/img-%d.png" % iters
     save_examples(file_name)
@@ -356,7 +356,7 @@ while True:
 
         sample = np.random.normal(0,1,(batch_size,LATENT_SIZE))
         sample = torch.tensor(sample, requires_grad=False).float().cuda()
-        sample = torch.zeros([batch_size,LATENT_SIZE], requires_grad=False).float().cuda()
+        #sample = torch.zeros([batch_size,LATENT_SIZE], requires_grad=False).float().cuda()
 
         batched_data = torch.empty([batch_size,3,210,160], requires_grad=False).cuda()
         batched_latent = torch.zeros([batch_size,LATENT_SIZE], requires_grad=False).cuda()
@@ -377,3 +377,6 @@ while True:
         optimizer.step()
     pbar.close()
     print('Training loss: %s' % training_loss)
+
+with open('encoder-weights.pt', 'wb') as f:
+    torch.save(encoder.state_dict(), f)

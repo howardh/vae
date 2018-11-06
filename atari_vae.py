@@ -81,30 +81,6 @@ class ConvEncoder(torch.nn.Module):
 
         return sample, mean, logvar
 
-class ConvEncoder2(torch.nn.Module): # Linear
-    def __init__(self):
-        super(ConvEncoder, self).__init__()
-        self.relu = torch.nn.LeakyReLU()
-
-        #self.fc0 = torch.nn.Linear(in_features=3*210*160,out_features=500,bias=True)
-        #self.fc1_mean = torch.nn.Linear(in_features=500,out_features=LATENT_SIZE,bias=True)
-        #self.fc1_std = torch.nn.Linear(in_features=500,out_features=LATENT_SIZE,bias=True)
-        self.fc1_mean = torch.nn.Linear(in_features=3*210*160,out_features=LATENT_SIZE,bias=True)
-        self.fc1_std  = torch.nn.Linear(in_features=3*210*160,out_features=LATENT_SIZE,bias=True)
-
-    def forward(self, inputs, sample):
-        output = inputs.view(-1,3*210*160)
-        #output = self.fc0(output)
-        #output = self.relu(output)
-
-        mean = self.fc1_mean(output)
-        logvar = self.fc1_std(output) # log(std^2)
-        std = logvar.mul(0.5).exp()
-
-        sample = sample.mul(std).add_(mean)
-
-        return sample, mean, logvar
-
 class ConvDecoder(torch.nn.Module):
     def __init__(self):
         super(ConvDecoder, self).__init__()
@@ -369,9 +345,6 @@ while True:
         o = decoder(o)
         l = loss(batched_data, o, m, lv)
         training_loss += l.item()
-
-        #o = decoder(batched_latent)
-        #l += loss(batched_data, o, m, lv)
 
         l.backward()
         optimizer.step()

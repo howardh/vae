@@ -4,6 +4,7 @@ import random
 import dill
 
 from PIL import Image
+import imageio
 from tqdm import tqdm
 
 LATENT_SIZE = 2048
@@ -105,7 +106,7 @@ def load_testing_data():
     with open('atari-test-Pong-v0.pkl', 'rb') as f:
         return dill.load(f)
 
-data = load_training_data()[:3]*int(1000/3)
+data = load_training_data()[:10]*int(1000/10)
 test_data = load_testing_data()
 
 encoder = ConvEncoder().cuda()
@@ -116,6 +117,10 @@ def save_image(data, file_name):
     data = data.astype(np.int8)
     img = Image.fromarray(data, mode='RGB')
     img.save(file_name)
+
+def save_gif(data, file_name):
+    img = np.array(data).astype(np.uint8)
+    imageio.mimwrite(file_name, img, duration=1)
 
 def np_to_torch(data):
     """Convert to NCHW format"""
@@ -205,6 +210,38 @@ def save_examples(file_name):
     all_examples = np.concatenate((test_inputs,test_outputs,train_outputs,train_inputs),axis=0)
     save_image(all_examples, file_name)
 
+expected = []
+predicted = []
+def save_examples_gif(file_name):
+    global expected
+    global predicted
+    expected = []
+    predicted = []
+    with torch.no_grad():
+        for i,d in enumerate(test_data[:3]+data[:3]):
+            obs = d['observations']
+            actions = d['actions']
+
+            input_img = np_to_torch(np.concatenate(obs[:-1],axis=2))
+            expected.append(list(obs))
+            sample = torch.zeros([LATENT_SIZE]).float().cuda()
+            o,m,lv = encoder(input_img, [actions[-1]], sample)
+            o = decoder(o)
+
+            predicted.append(list(obs[:-1]) + [add_diff(obs[-2], torch_to_np(o)[0])])
+
+    expected = np.array(expected)
+    expected = np.moveaxis(expected,0,1)
+    predicted = np.array(predicted)
+    predicted = np.moveaxis(predicted,0,1)
+    frames = []
+    for i in range(expected.shape[0]):
+        exp_frame = np.concatenate(expected[i],axis=1)
+        pred_frame = np.concatenate(predicted[i],axis=1)
+        merged_frame = np.concatenate((exp_frame, pred_frame),axis=0)
+        frames.append(merged_frame)
+    save_gif(frames, file_name)
+
 def save_truth(file_name):
     latents = []
     output = []
@@ -227,8 +264,11 @@ iters = 0
 batch_size = 1
 while True:
     file_name = "output/img-%d.png" % iters
+    gif_file_name = "output/img-%d.gif" % iters
     save_examples(file_name)
     print('Saved file: %s' % file_name)
+    save_examples_gif(gif_file_name)
+    print('Saved file: %s' % gif_file_name)
     tl = test_batch()
     print('Test loss: %s' % tl)
     iters += 1

@@ -210,11 +210,7 @@ def save_examples(file_name):
     all_examples = np.concatenate((test_inputs,test_outputs,train_outputs,train_inputs),axis=0)
     save_image(all_examples, file_name)
 
-expected = []
-predicted = []
 def save_examples_gif(file_name):
-    global expected
-    global predicted
     expected = []
     predicted = []
     with torch.no_grad():
